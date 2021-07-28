@@ -62,4 +62,4 @@ bundle exec htmlproofer "$DEST" \
   --disable-external \
   --check-html \
   --allow_hash_href \
-  --href_ignore 
+  --url_ignore "/" 
