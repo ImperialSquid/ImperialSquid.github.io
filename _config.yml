@@ -2,7 +2,10 @@ theme: jekyll-theme-chirpy
 baseurl: ''
 lang: en-UK
 timezone: Europe/London
+
 title: Ben Jaeger's Blog
+tagline: An Unashamed Nerd's Little Corner of the Internet 
+
 url: https://imperialsquid.github.io/
 github:
   username: ImperialSquid
