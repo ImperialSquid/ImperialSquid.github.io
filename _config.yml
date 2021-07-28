@@ -1,5 +1,7 @@
 title: Ben Jaeger's Blog
-theme: jekyll-theme-chirpy
+remote_theme: cotes2020/jekyll-theme-chirpy
+plugins:
+- jekyll-remote-theme
 show_downloads: false
 permalink: pretty
 url: https://imperialsquid.github.io/
