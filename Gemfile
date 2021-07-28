@@ -5,5 +5,5 @@ gem "jekyll-theme-chirpy"
 gem "jekyll-paginate"
 
 group :test do
-  gem "html-proofer"
+  gem "html-proofer", "~> 3.16.0"
 end
