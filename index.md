@@ -1,7 +1,7 @@
 ---
 layout: home
+# Title
 ---
 
-# Title
 
 Test Test Test
