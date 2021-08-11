@@ -34,19 +34,19 @@ type_index = dict()
 # will eventualy form a dictionary that looks like: 
 # {poke1: [type11, type12], poke2: [type21, type22], ...}
 WHILE TRUE:
-	TRY:
-		type = GET type name using pokebase
-		pokemons = GET all pokemon with that type
-	EXCEPT type doesn't exist:
-		BREAK
-	type_id += 1
-	
-	FOR pokemon IN pokemons:
-		old_types = type_index[pokemon] or [] if it dowsn't exist
-		new_types = old_types + [type]
-		# new_types is now a list of the types that pokemon has so far
-		type_index[pokemon] = new_types
-	ENDFOR
+    TRY:
+        type = GET type name using pokebase
+        pokemons = GET all pokemon with that type
+    EXCEPT type doesn't exist:
+        BREAK
+    type_id += 1
+    
+    FOR pokemon IN pokemons:
+        old_types = type_index[pokemon] or [] if it dowsn't exist
+        new_types = old_types + [type]
+        # new_types is now a list of the types that pokemon has so far
+        type_index[pokemon] = new_types
+    ENDFOR
 ENDWHILE
 ```
 
@@ -63,23 +63,22 @@ Now for the last thing: downloading the sprites! I intend to just download the s
 
 ```
 FOR kwargs = {every combo of True/False for "shiny" and "back"}
-	suffix = each "True" kwarg with an underscore between
-	# eg {"shiny": True, "back": True} -> "shiny_back"
-	# but {"shiny": False, "back": True} -> "back"
-	
-	index = 1
-	WHILE TRUE:
-		TRY:
-			img_data = GET sprite with ID index
-		EXCEPT sprite doesn't exist:
-			BREAK
-		index += 1
-		
-		filename = index + suffix + ".jpg"
-		filepath = "./sprites/raw/" + filename
-		IF filename doesn't exist:
-			WRITE img_data TO filepath
-		
+    suffix = each "True" kwarg with an underscore between
+    # eg {"shiny": True, "back": True} -> "shiny_back"
+    # but {"shiny": False, "back": True} -> "back"
+    
+    index = 1
+    WHILE TRUE:
+        TRY:
+            img_data = GET sprite with ID index
+        EXCEPT sprite doesn't exist:
+            BREAK
+        index += 1
+        
+        filename = index + suffix + ".jpg"
+        filepath = "./sprites/raw/" + filename
+        IF filename doesn't exist:
+            WRITE img_data TO filepath
 ```
 
 I also did a bit of preprocessing to standardise the images, since the size of the images varied between 96x96 and 128x128 pixels I rescaled everything down to 96x96, I also removed any transparency and gave the sprites a black background.
@@ -89,15 +88,15 @@ With all the sprites downloaded and preprocessed, and all the target data for ea
 
 ```
 WITH open("data.txt") AS file:
-	FOR image_name IN image_folder:
-		id = extract id from image_name
-		# shiny pokémon have the "shiny" in their name as per The Sprites
-		shininess = extract shininess from image_name
-		types = type_index[id][0] + "," + type_index[id][1]
-		gen = gen_index[id]
-		
-		text = image_name + "," + types + "," + gen + "," + shininess
-		WRITE text TO file
+    FOR image_name IN image_folder:
+        id = extract id from image_name
+        # shiny pokémon have the "shiny" in their name as per The Sprites
+        shininess = extract shininess from image_name
+        types = type_index[id][0] + "," + type_index[id][1]
+        gen = gen_index[id]
+        
+        text = image_name + "," + types + "," + gen + "," + shininess
+        WRITE text TO file
 ```
 
 # The Dataset
@@ -119,19 +118,19 @@ To parse the data file I then convert the text file like so (to those that know 
 ```
 data_dict = dict()
 FOR line IN text_file:
-	splits = split lines along ","s
-	index = splits[0]
-	
-	types = EncodeOneHot(splits[1]) + EncodeOneHot(splits[2])
-	# "fire,electric" -> [1,0,0,...] + [0,0,1,...] = [1,0,1,...]  
-	
-	gen = EncodeOneHot(splits[3])
-	# "gen-3" -> [0,0,1,...]
-	
-	shiny = (splits[4] == "true")
-	# "false" -> 0
-	
-	data_dict[index] = [types, gen, shiny]
+    splits = split lines along ","s
+    index = splits[0]
+    
+    types = EncodeOneHot(splits[1]) + EncodeOneHot(splits[2])
+    # "fire,electric" -> [1,0,0,...] + [0,0,1,...] = [1,0,1,...]  
+    
+    gen = EncodeOneHot(splits[3])
+    # "gen-3" -> [0,0,1,...]
+    
+    shiny = (splits[4] == "true")
+    # "false" -> 0
+    
+    data_dict[index] = [types, gen, shiny]
 ```
 
 In machine learning, it's best practice to keep a seperate set of data for training the model and for testing it afterwards. Since the data is mixed together, I also needed a way to filter it as it gets loaded to ensure I can keep seperate sets. This is acheived with some python [dictionary comprehension](https://www.datacamp.com/community/tutorials/python-dictionary-comprehension). 
@@ -149,23 +148,23 @@ Here's a python-esque chunk of pseudocode for the Dataset (with lots of little t
 
 ```
 class MultimonDataset(Dataset):
-	self __init__(self, data_file, img_path, index_mask, no_mask = False)
-		full_data = self.parse_data_file(data_file)
-		self.data = {key: full_data[key] for index, key in enumerate(full_data) if index in index_mask or no_mask}
-		# filter data as before
-		
-		self.img_path = img_path
-	
-	self __len__(self)
-		return len(self.data)
-	
-	self __getitem__(self, index):
-		key = self.data.keys()[index]
-		img = READ (self.img_path + key)
-		labels = self.data[key]
+    self __init__(self, data_file, img_path, index_mask, no_mask = False)
+        full_data = self.parse_data_file(data_file)
+        self.data = {key: full_data[key] for index, key in enumerate(full_data) if index in index_mask or no_mask}
+        # filter data as before
+        
+        self.img_path = img_path
+    
+    self __len__(self)
+        return len(self.data)
+    
+    self __getitem__(self, index):
+        key = self.data.keys()[index]
+        img = READ (self.img_path + key)
+        labels = self.data[key]
 
-	self parse_data_file(self, filename):
-		# Parse data as described above
+    self parse_data_file(self, filename):
+        # Parse data as described above
 ```
 
 # Summary
