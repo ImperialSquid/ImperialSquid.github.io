@@ -4,7 +4,7 @@ categories: [Projects, Multimon]
 tags: [neural networks, multitask learning, computer vision, pytorch, pokémon]
 published: true
 layout: post
-comments: true
+comments: false
 pin: true
 toc: true
 ---
