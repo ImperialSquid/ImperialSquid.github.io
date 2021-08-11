@@ -5,7 +5,7 @@ tags: [neural networks, multitask learning, computer vision, pytorch, pokémon]
 published: true
 layout: post
 comments: false
-pin: true
+pin: false
 toc: true
 image:
   src: /assets/headers/multimonheader.png
