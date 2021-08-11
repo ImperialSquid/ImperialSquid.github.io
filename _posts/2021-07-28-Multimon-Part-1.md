@@ -19,7 +19,7 @@ A friend recently suggested to me it would be a fun challenge to see if you coul
 
 # Why the Project is Called Multimon?
 So first of all, why that name for the project? Since at the time of writing I am doing a PhD on the topic of Multitasking Neural Networks (ie a neural net where we have more than one output), I decided to expand on the original pitch by my friend to include a few more things. As opposed to just the type I wanted to get:
-![Lucario](/assets/multimon/448.png){: .right width="300" height="300" }
+![Lucario](/assets/multimon/448.png){: .right width="240" height="300" }
 - It's Type (such as Flying, Grass, etc)
 - The Generation it's from (pokémon games are released in generations, the intuition here being that the design principles may have changed over time)
 - Whether or not it's a "Shiny" (shiny pokémon is the term given to a rarer form of each pokémon, they are identical in all regards except that they have a different colout palette)
