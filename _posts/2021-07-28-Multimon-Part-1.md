@@ -50,7 +50,7 @@ WHILE TRUE:
 ENDWHILE
 ```
 
-For reasons I'll explain when I talk about the model in the next post (link to be added) I also added a bit of code to add a second "none" type if the pokémon only has one type.
+For reasons I'll explain when I talk about the model in the next part (link to be added) I also added a bit of code to add a second "none" type if the pokémon only has one type.
 
 ## The Generation
 Getting the generation for each pokémon works much the same as the above types portion of code, I keep the same pokemon to generation mapping format as above too to make adding everythng together later more simple.
@@ -64,8 +64,8 @@ Now for the last thing: downloading the sprites! I intend to just download the s
 ```
 FOR kwargs = {every combo of True/False for "shiny" and "back"}
 	suffix = each "True" kwarg with an underscore between
-	# eg {"shiny": True, "back": True} => "shiny_back"
-	# but {"shiny": False, "back": True} => "back"
+	# eg {"shiny": True, "back": True} -> "shiny_back"
+	# but {"shiny": False, "back": True} -> "back"
 	
 	index = 1
 	WHILE TRUE:
@@ -84,7 +84,7 @@ FOR kwargs = {every combo of True/False for "shiny" and "back"}
 
 I also did a bit of preprocessing to standardise the images, since the size of the images varied between 96x96 and 128x128 pixels I rescaled everything down to 96x96, I also removed any transparency and gave the sprites a black background.
 
-## Connecting The Data
+## Connecting It All Together
 With all the sprites downloaded and preprocessed, and all the target data for each pokémon downloaded, I now needed a way to tie them together, this was easily done by taking a list of a ll the sprites, extracting the ID from the name and getting the relevant types, generations and shininess for it. This is done as follows:
 
 ```
@@ -101,6 +101,72 @@ WITH open("data.txt") AS file:
 ```
 
 # The Dataset
+The last thing in this post will be making a proper Dataset object from PyTorch. Dataset objects are used by PyTorch to handle loading the data as training happens, they can be about as simple or complex as you need but the minimum you need is a method to dispense the data, and another to return how many bits of data there will be (so PyTorch knows not to request too many instances).
 
+The first thing to do is make a way of getting the data back out of the `data.txt` file we made previously. This isn't super hard to do but some more work will need to be done on the target data after this is sorted. Having a pokémon's type be "fire" or "water" doesn't mean much to a neural net since that only works with numbers, I therefore turned these categories into "one-hot vectors" (or two-hot in the type scenario).
 
+A one-hot vector encodes each category to an index in a target vector, the corresponding element is then "hot" and marked with a 1, the rest are zeroes. The model then tries to get the correct element as close to 1 as possible and as close as 0 for the others
 
+```
+An Example One-Hot Encoding
+Dog -> [1,0,0]
+Cat -> [0,1,0]
+Fish -> [0,0,1]
+```
+
+To parse the data file I then convert the text file like so (to those that know the difference, the data is also converted to tensors as it gets parsed, if not, don't worry about it, we'll get more into PyTorch specifics later!):
+
+```
+data_dict = dict()
+FOR line IN text_file:
+	splits = split lines along ","s
+	index = splits[0]
+	
+	types = EncodeOneHot(splits[1]) + EncodeOneHot(splits[2])
+	# "fire,electric" -> [1,0,0,...] + [0,0,1,...] = [1,0,1,...]  
+	
+	gen = EncodeOneHot(splits[3])
+	# "gen-3" -> [0,0,1,...]
+	
+	shiny = (splits[4] == "true")
+	# "false" -> 0
+	
+	data_dict[index] = [types, gen, shiny]
+```
+
+In machine learning, it's best practice to keep a seperate set of data for training the model and for testing it afterwards. Since the data is mixed together, I also needed a way to filter it as it gets loaded to ensure I can keep seperate sets. This is acheived with some python [dictionary comprehension](https://www.datacamp.com/community/tutorials/python-dictionary-comprehension). 
+
+```
+full_data = get full data dictionary from data.txt
+filtered_data = {key: full_data[key] for index, key in enumerate(full_data) if index in index_mask or no_mask}
+```
+
+This line may look a bit complicated, essentially all it does is take in a list of indexes to keep (eg [1,2,4,5,7,8,...]) and doesn't add any data element not in the index mask, alternatively if no_mask is True, all elements are added regardless of the index mask.
+
+There are several other fancy things I plan to do with this Dataset later but that is all that's needed for now!
+
+Here's a python-esque chunk of pseudocode for the Dataset (with lots of little things skimmed over I'll come back to later...)
+
+```
+class MultimonDataset(Dataset):
+	self __init__(self, data_file, img_path, index_mask, no_mask = False)
+		full_data = self.parse_data_file(data_file)
+		self.data = {key: full_data[key] for index, key in enumerate(full_data) if index in index_mask or no_mask}
+		# filter data as before
+		
+		self.img_path = img_path
+	
+	self __len__(self)
+		return len(self.data)
+	
+	self __getitem__(self, index):
+		key = self.data.keys()[index]
+		img = READ (self.img_path + key)
+		labels = self.data[key]
+
+	self parse_data_file(self, filename):
+		# Parse data as described above
+```
+
+# Summary
+Congrats! With that we've come to the end of Part 1 of the project! I set out the rough outline of the project and got a lot of the data management sorted! Next up I'll very quickly skim over some machine learning basics and start making the model!
