@@ -84,22 +84,45 @@ FOR kwargs = {every combo of True/False for "shiny" and "back"}
 
 I also did a bit of preprocessing to standardise the images, since the size of the images varied between 96x96 and 128x128 pixels I rescaled everything down to 96x96, I also removed any transparency and gave the sprites a black background.
 
-## The Dataset
+## Connecting The Data
 With all the sprites downloaded and preprocessed, and all the target data for each pokémon downloaded, I now needed a way to tie them together, this was easily done by taking a list of a ll the sprites, extracting the ID from the name and getting the relevant types, generations and shininess for it. This is done as follows:
 
 ```
-WITH open("data.txt") AS f:
+WITH open("data.txt") AS file:
 	FOR image_name IN image_folder:
-		index = extract index from image_name
-		# shiny pokémon have the word "shiny" in their name as per code in 
-		# <a href="#the-sprites">The Sprites</a>
-
+		id = extract id from image_name
+		# shiny pokémon have the "shiny" in their name as per The Sprites
 		shininess = extract shininess from image_name
+		types = type_index[id][0] + "," + type_index[id][1]
+		gen = gen_index[id]
+		
+		text = image_name + "," + types + "," + gen + "," + shininess
+		WRITE text TO file
 ```
 
-# Data Loader
+# The Dataset
 
 
+
+<div id="disqus_thread"></div>
+<script>
+    /**
+    *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+    *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+    /*
+    var disqus_config = function () {
+    this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+    */
+    (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://jaegerblog.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 
 
 
