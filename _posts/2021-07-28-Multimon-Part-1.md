@@ -137,7 +137,8 @@ In machine learning, it's best practice to keep a seperate set of data for train
 
 ```
 full_data = get full data dictionary from data.txt
-filtered_data = {key: full_data[key] for index, key in enumerate(full_data) if index in index_mask or no_mask}
+filtered_data = {key: full_data[key] for index, key in enumerate(full_data) 
+                 if index in index_mask or no_mask}
 ```
 
 This line may look a bit complicated, essentially all it does is take in a list of indexes to keep (eg [1,2,4,5,7,8,...]) and doesn't add any data element not in the index mask, alternatively if no_mask is True, all elements are added regardless of the index mask.
@@ -150,7 +151,8 @@ Here's a python-esque chunk of pseudocode for the Dataset (with lots of little t
 class MultimonDataset(Dataset):
     self __init__(self, data_file, img_path, index_mask, no_mask = False)
         full_data = self.parse_data_file(data_file)
-        self.data = {key: full_data[key] for index, key in enumerate(full_data) if index in index_mask or no_mask}
+        self.data = {key: full_data[key] for index, key in enumerate(full_data) 
+		             if index in index_mask or no_mask}
         # filter data as before
         
         self.img_path = img_path
