@@ -23,6 +23,11 @@ So first of all, why that name for the project? Since at the time of writing I a
 - The Generation it's from (pokémon games are released in generations, the intuition here being that the design principles may have changed over time)
 - Whether or not it's a "Shiny" (shiny pokémon is the term given to a rarer form of each pokémon, they are identical in all regards except that they have a different colout palette)
 
+So for example, with the Lucario sprite shown to the right, we want to guess Fighting and Steel for the types, Gen IV for the generation and False for the shininess!
+
+![Lucario](/assets/multimon/448.png){: .right width="300" height="300" }
+
+
 # The Data
 The most important thing now therefore is to get some data to work on! For this I landed on using the Pokébase library for python ([GitHub here](https://github.com/PokeAPI/pokebase)) which acts as a lightweight interface for the PokéAPI database.
 
