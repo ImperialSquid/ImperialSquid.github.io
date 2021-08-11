@@ -26,11 +26,13 @@ So for each sprite I want to train on, I also need to store the correct types, g
 ## The Types
 While it may seem easier to collect the types for each pokémon one by one, this ends up being **far** slower than collecting all the pokémon of each type and *then* flipping it the other way since there are less than two dozen types and several hundred pokémon!
 
-To acheive this, I keep getting the pokemon for each type until I get an error, then using the pokemon in the list for that type, I make a dictionary mapping pokemon to their types. The pseudo code for this is below:
+To acheive this, I keep getting the pokemon for each type until I get an error, then using the pokemon in the list for that type, I make a dictionary mapping pokemon to their types. The pseudocode for this is below:
 
 ```
 type_id = 0
-type_index = dict() # will eventualy form a dictionary that looks like: {poke1: [type11, type12], poke2: [type21, type22], ...}
+type_index = dict() 
+# will eventualy form a dictionary that looks like: 
+# {poke1: [type11, type12], poke2: [type21, type22], ...}
 WHILE TRUE:
 	TRY:
 		type = GET type name using pokebase
@@ -40,9 +42,9 @@ WHILE TRUE:
 	type_id += 1
 	
 	FOR pokemon IN pokemons:
-		old_types = type_index[pokemon] OR [] IF type_index[pokemon] DOWSN'T EXIST
+		old_types = type_index[pokemon] or [] if it dowsn't exist
 		new_types = old_types + [type]
-		# new_types is now a list of the types that pokemon has
+		# new_types is now a list of the types that pokemon has so far
 		type_index[pokemon] = new_types
 	ENDFOR
 ENDWHILE
@@ -57,7 +59,47 @@ Getting the generation for each pokémon works much the same as the above types 
 We don't actually need to collect this in advance, since *every* pokémon has a shiny and non-shiny version, we can construct this target bit of data on the fly as we download the sprites!
 
 ## The Sprites
+Now for the last thing: downloading the sprites! I intend to just download the sprites raw initally, then I don't need to redownload them if I do some extra preprocessing later. I use the same idea as with the types and generations to keep downloading sprites until I run out. I also need to download different versions of each sprite (shiny/not shiny and front/back). To do this, I download every pokémon of one version, then all of the next and so on. The pseudocode for this is as follows:
 
-# Dataset
+```
+FOR kwargs = {every combo of True/False for "shiny" and "back"}
+	suffix = each "True" kwarg with an underscore between
+	# eg {"shiny": True, "back": True} => "shiny_back"
+	# but {"shiny": False, "back": True} => "back"
+	
+	index = 1
+	WHILE TRUE:
+		TRY:
+			img_data = GET sprite with ID index
+		EXCEPT sprite doesn't exist:
+			BREAK
+		index += 1
+		
+		filename = index + suffix + ".jpg"
+		filepath = "./sprites/raw/" + filename
+		IF filename doesn't exist:
+			WRITE img_data TO filepath
+		
+```
 
-# Data loader
+I also did a bit of preprocessing to standardise the images, since the size of the images varied between 96x96 and 128x128 pixels I rescaled everything down to 96x96, I also removed any transparency and gave the sprites a black background.
+
+## The Dataset
+With all the sprites downloaded and preprocessed, and all the target data for each pokémon downloaded, I now needed a way to tie them together, this was easily done by taking a list of a ll the sprites, extracting the ID from the name and getting the relevant types, generations and shininess for it. This is done as follows:
+
+```
+WITH open("data.txt") AS f:
+	FOR image_name IN image_folder:
+		index = extract index from image_name
+		# shiny pokémon have the word "shiny" in their name as per code in 
+		# <a href="#the-sprites">The Sprites</a>
+
+		shininess = extract shininess from image_name
+```
+
+# Data Loader
+
+
+
+
+
