@@ -11,7 +11,7 @@ image:
   src: /assets/headers/multimonheader.png
   width: 1100   # in pixels
   height: 118   # in pixels
-  alt: Multimon header image, says "Who's That Multimon?!" in pokémon style font with a Charizard sprite
+  alt: Multimon header image, says Who's That Multimon?! in pokémon style font with a Charizard sprite
 ---
 
 # Introduction
