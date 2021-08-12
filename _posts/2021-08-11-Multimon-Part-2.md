@@ -2,7 +2,7 @@
 title: Who's That Multimon?! Part 2 - Models and Multitasking
 categories: [Projects, Multimon]
 tags: [neural networks, multitask learning, computer vision, pytorch, pokémon]
-published: true
+published: false
 layout: post
 comments: false
 pin: false
