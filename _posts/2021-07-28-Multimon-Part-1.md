@@ -15,10 +15,11 @@ image:
 ---
 
 # Introduction
-A friend recently suggested to me it would be a fun challenge to see if you could build a neural network to identify Pokémon types using just their sprites. Given I was in the process of trying to get my head round neural networks and learning PyTorch at the time this seemed like a fun little exercise to ease me into it! These posts will tell the story of how I got on, they'll ideally bridge the gap between being comprehendable and having just enough of the gory details for those more interested in that side. If you just want the technical stuff you can find the GitHub repo of my results [here](https://github.com/ImperialSquid/Multimon), without further ado, let's begin!
+A friend recently suggested it would be a fun challenge to see if you could build a neural network to identify Pokémon types using just their sprites. Given I was in the process of trying to get my head around neural networks and learning PyTorch at the time, this seemed like a fun little exercise to ease me into it! These posts will tell the story of how I got on. They’ll ideally bridge the gap between being comprehendible and having just enough of the gory details for those more interested in that side. If you want the technical stuff, you can find the GitHub repo of my results [here](https://github.com/ImperialSquid/Multimon). Without further ado, let’s begin!
 
-# Why the Project is Called Multimon?
-So first of all, why that name for the project? Since at the time of writing I am doing a PhD on the topic of Multitasking Neural Networks (ie a neural net where we have more than one output), I decided to expand on the original pitch by my friend to include a few more things. As opposed to just the type I wanted to get:
+
+# Why is the Project called "Multimon"?
+So, first of all, why that name for the project? Since, at the time of writing, I am doing a PhD on Multitasking Neural Networks (i.e. a neural net where we have more than one output), I decided to expand on the original pitch by my friend to include a few more things. As opposed to just the type I wanted to get: 
 ![Lucario](/assets/multimon/448.png){: .right width="240" height="300" }
 - It's Type (such as Flying, Grass, etc)
 - The Generation it's from (pokémon games are released in generations, the intuition here being that the design principles may have changed over time)
@@ -28,9 +29,10 @@ So for example, with the Lucario sprite shown to the right, we want to guess Fig
 
 
 # The Data
-The most important thing now therefore is to get some data to work on! For this I landed on using the Pokébase library for python ([GitHub here](https://github.com/PokeAPI/pokebase)) which acts as a lightweight interface for the PokéAPI database.
+The most important thing now, therefore, is to get some data to work on! I landed on using the Pokébase library for python ([GitHub here](https://github.com/PokeAPI/pokebase)), which acts as a lightweight interface for the PokéAPI database.
 
-So for each sprite I want to train on, I also need to store the correct types, generation and shininess. Given that for each pokémon I actually want multiple sprites (for shiny/not shiny and also for front/back sprites) it's going to be easier in the long run to collect the target data for each pokémon in advance and then store it as we download the sprites, rather than collecting it each time.
+So for each sprite, I also need to store the correct types, generation and shininess. Given that for each pokémon, I want multiple sprites (for shiny/not shiny and also for front/back sprites), it’s going to be easier, in the long run, to collect the target data for each pokémon in advance. Then access it as we download the sprites, rather than collecting the data each time.
+
 
 ## The Types
 While it may seem easier to collect the types for each pokémon one by one, this ends up being **far** slower than collecting all the pokémon of each type and *then* flipping it the other way since there are less than two dozen types and several hundred pokémon!
@@ -62,13 +64,13 @@ ENDWHILE
 For reasons I'll explain when I talk about the model in the next part (link to be added) I also added a bit of code to add a second "none" type if the pokémon only has one type.
 
 ## The Generation
-Getting the generation for each pokémon works much the same as the above types portion of code, I keep the same pokemon to generation mapping format as above too to make adding everythng together later more simple.
+Getting the generation for each pokémon works much the same as the above portion of code for types. I also keep the same pokemon to generation mapping format as above to make adding everything together later more straightforward.
 
 ## The Shininess
-We don't actually need to collect this in advance, since *every* pokémon has a shiny and non-shiny version, we can construct this target bit of data on the fly as we download the sprites!
+We don’t actually need to collect this in advance! Since *every* pokémon has a shiny and non-shiny version, we can construct this target bit of data on the fly as we download the sprites!
 
 ## The Sprites
-Now for the last thing: downloading the sprites! I intend to just download the sprites raw initally, then I don't need to redownload them if I do some extra preprocessing later. I use the same idea as with the types and generations to keep downloading sprites until I run out. I also need to download different versions of each sprite (shiny/not shiny and front/back). To do this, I download every pokémon of one version, then all of the next and so on. The pseudocode for this is as follows:
+Now for the last thing: downloading the sprites! I intend just to download the sprites raw initially, and then I don’t need to re-download them if I do some extra preprocessing later. I use the same idea as the types and generations previously to keep downloading sprites until I run out. I also need to download different sprite versions (shiny/not shiny and front/back). To do this, I download every pokémon of one version, then all of the next and so on. The pseudocode for this is as follows:
 
 ```
 FOR kwargs = {every combo of True/False for "shiny" and "back"}
@@ -90,10 +92,10 @@ FOR kwargs = {every combo of True/False for "shiny" and "back"}
             WRITE img_data TO filepath
 ```
 
-I also did a bit of preprocessing to standardise the images, since the size of the images varied between 96x96 and 128x128 pixels I rescaled everything down to 96x96, I also removed any transparency and gave the sprites a black background.
+I also did a bit of preprocessing to standardise the images. Since the size of the images varied between 96x96 and 128x128 pixels, I rescaled everything down to 96x96. I also removed any transparency and gave the sprites a black background.
 
 ## Connecting It All Together
-With all the sprites downloaded and preprocessed, and all the target data for each pokémon downloaded, I now needed a way to tie them together, this was easily done by taking a list of a ll the sprites, extracting the ID from the name and getting the relevant types, generations and shininess for it. This is done as follows:
+With the sprites downloaded and preprocessed, and all the target data for each pokémon downloaded, I now needed a way to tie them together. I did this by taking a list of all the sprites, extracting the ID from the name, and getting the relevant types, generations, and shininess. This is done as follows:
 
 ```
 WITH open("data.txt") AS file:
@@ -109,11 +111,11 @@ WITH open("data.txt") AS file:
 ```
 
 # The Dataset
-The last thing in this post will be making a proper Dataset object from PyTorch. Dataset objects are used by PyTorch to handle loading the data as training happens, they can be about as simple or complex as you need but the minimum you need is a method to dispense the data, and another to return how many bits of data there will be (so PyTorch knows not to request too many instances).
+The last thing in this post will be making a proper Dataset object from PyTorch. PyTorch uses Dataset objects to handle loading the data as training happens, they can be about as simple or complex as you need. Still, the minimum you need is a method to dispense the data and another to return how many data items there will be (so PyTorch knows not to request too many instances).
 
-The first thing to do is make a way of getting the data back out of the `data.txt` file we made previously. This isn't super hard to do but some more work will need to be done on the target data after this is sorted. Having a pokémon's type be "fire" or "water" doesn't mean much to a neural net since that only works with numbers, I therefore turned these categories into "one-hot vectors" (or two-hot in the type scenario).
+The first thing to do is make a way to get the data back out of the `data.txt` file we made previously. This isn’t hard to do, but more work will need to be done on the target data after this is sorted. Having a pokémon’s type be “fire” or “water” doesn’t mean much to a neural net since that only works with numbers. I, therefore, turned these categories into “one-hot vectors” (or two-hot in the type scenario).
 
-A one-hot vector encodes each category to an index in a target vector, the corresponding element is then "hot" and marked with a 1, the rest are zeroes. The model then tries to get the correct element as close to 1 as possible and as close as 0 for the others
+A one-hot vector encodes each category to an index in a target vector. The corresponding element is then “hot” and marked with a 1, while the rest are zeroes. The model then tries to get the correct element as close to 1 and as close to 0 for the others.
 
 ```
 An Example One-Hot Encoding
@@ -122,7 +124,7 @@ Cat -> [0,1,0]
 Fish -> [0,0,1]
 ```
 
-To parse the data file I then convert the text file like so (to those that know the difference, the data is also converted to tensors as it gets parsed, if not, don't worry about it, we'll get more into PyTorch specifics later!):
+To parse the data file, I then convert the text file like so (to those that know the difference, the data is also converted to tensors as it gets parsed, if not, don’t worry about it, we’ll get more into PyTorch specifics later!):
 
 ```
 data_dict = dict()
@@ -142,7 +144,7 @@ FOR line IN text_file:
     data_dict[index] = [types, gen, shiny]
 ```
 
-In machine learning, it's best practice to keep a seperate set of data for training the model and for testing it afterwards. Since the data is mixed together, I also needed a way to filter it as it gets loaded to ensure I can keep seperate sets. This is acheived with some python [dictionary comprehension](https://www.datacamp.com/community/tutorials/python-dictionary-comprehension). 
+In machine learning, it’s best to keep separate data sets for training and testing the model. Since the data is mixed together, I also needed to filter it as it gets loaded to keep separate sets. This is achieved with some python [dictionary comprehension](https://www.datacamp.com/community/tutorials/python-dictionary-comprehension). 
 
 ```
 full_data = get full data dictionary from data.txt
@@ -150,11 +152,11 @@ filtered_data = {key: full_data[key] for index, key in enumerate(full_data)
                  if index in index_mask or no_mask}
 ```
 
-This line may look a bit complicated, essentially all it does is take in a list of indexes to keep (eg [1,2,4,5,7,8,...]) and doesn't add any data element not in the index mask, alternatively if no_mask is True, all elements are added regardless of the index mask.
+This line may look a bit complicated... Essentially, all it does is take in a list of indexes to keep (e.g. [1,2,4,5,7,8,…]) and throws out any data element not in the index mask. Alternatively, if no_mask is True, all elements are added regardless of the index mask.
 
-There are several other fancy things I plan to do with this Dataset later but that is all that's needed for now!
+I plan to do several other fancy things with this Dataset later, but that is all that’s needed for now!
 
-Here's a python-esque chunk of pseudocode for the Dataset (with lots of little things skimmed over I'll come back to later...)
+Here’s a chunk of pseudocode for the Dataset (with lots of little things skimmed over that I’ll come back to later)
 
 ```
 class MultimonDataset(Dataset):
@@ -179,4 +181,4 @@ class MultimonDataset(Dataset):
 ```
 
 # Summary
-Congrats! With that we've come to the end of Part 1 of the project! I set out the rough outline of the project and got a lot of the data management sorted! Next up I'll very quickly skim over some machine learning basics and start making the model!
+Congrats! With that, we’ve come to the end of Part 1 of the project! I set out the rough outline of the project and got a lot of the data management sorted! Next up, I’ll very quickly skim over some machine learning basics and start making the model!
