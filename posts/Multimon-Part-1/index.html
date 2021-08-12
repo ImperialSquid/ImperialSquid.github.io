@@ -1,0 +1,175 @@
+<!DOCTYPE html><html lang="en-UK" ><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"><meta name="generator" content="Jekyll v4.2.0" /><meta property="og:title" content="Who’s That Multimon?! Part 1 - Sprites and Dataloaders" /><meta property="og:locale" content="en_UK" /><meta name="description" content="Introduction A friend recently suggested it would be a fun challenge to see if you could build a neural network to identify Pokémon types using just their sprites. Given I was in the process of trying to get my head around neural networks and learning PyTorch at the time, this seemed like a fun little exercise to ease me into it! These posts will tell the story of how I got on. They’ll ideally bridge the gap between being comprehendible and having just enough of the gory details for those more interested in that side. If you want the technical stuff, you can find the GitHub repo of my results here. Without further ado, let’s begin!" /><meta property="og:description" content="Introduction A friend recently suggested it would be a fun challenge to see if you could build a neural network to identify Pokémon types using just their sprites. Given I was in the process of trying to get my head around neural networks and learning PyTorch at the time, this seemed like a fun little exercise to ease me into it! These posts will tell the story of how I got on. They’ll ideally bridge the gap between being comprehendible and having just enough of the gory details for those more interested in that side. If you want the technical stuff, you can find the GitHub repo of my results here. Without further ado, let’s begin!" /><link rel="canonical" href="https://imperialsquid.github.io//posts/Multimon-Part-1/" /><meta property="og:url" content="https://imperialsquid.github.io//posts/Multimon-Part-1/" /><meta property="og:site_name" content="Ben Jaeger’s Blog" /><meta property="og:type" content="article" /><meta property="article:published_time" content="2021-07-28T00:00:00+01:00" /><meta name="twitter:card" content="summary" /><meta property="twitter:title" content="Who’s That Multimon?! Part 1 - Sprites and Dataloaders" /><meta name="twitter:site" content="@ItsBenJaeger" /><meta name="google-site-verification" content="google_meta_tag_verification" /> <script type="application/ld+json"> {"headline":"Who’s That Multimon?! Part 1 - Sprites and Dataloaders","dateModified":"2021-08-12T17:11:12+01:00","datePublished":"2021-07-28T00:00:00+01:00","url":"https://imperialsquid.github.io//posts/Multimon-Part-1/","description":"Introduction A friend recently suggested it would be a fun challenge to see if you could build a neural network to identify Pokémon types using just their sprites. Given I was in the process of trying to get my head around neural networks and learning PyTorch at the time, this seemed like a fun little exercise to ease me into it! These posts will tell the story of how I got on. They’ll ideally bridge the gap between being comprehendible and having just enough of the gory details for those more interested in that side. If you want the technical stuff, you can find the GitHub repo of my results here. Without further ado, let’s begin!","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://imperialsquid.github.io//posts/Multimon-Part-1/"},"@context":"https://schema.org"}</script><title>Who's That Multimon?! Part 1 - Sprites and Dataloaders | Ben Jaeger's Blog</title><link rel="apple-touch-icon" sizes="180x180" href="/assets/img/favicons/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicons/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicons/favicon-16x16.png"><link rel="manifest" href="/assets/img/favicons/site.webmanifest"><link rel="shortcut icon" href="/assets/img/favicons/favicon.ico"><meta name="apple-mobile-web-app-title" content="Ben Jaeger's Blog"><meta name="application-name" content="Ben Jaeger's Blog"><meta name="msapplication-TileColor" content="#da532c"><meta name="msapplication-config" content="/assets/img/favicons/browserconfig.xml"><meta name="theme-color" content="#ffffff"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"><link rel="dns-prefetch" href="https://fonts.gstatic.com"><link rel="preconnect" href="https://www.google-analytics.com" crossorigin="use-credentials"><link rel="dns-prefetch" href="https://www.google-analytics.com"><link rel="preconnect" href="https://www.googletagmanager.com" crossorigin="anonymous"><link rel="dns-prefetch" href="https://www.googletagmanager.com"><link rel="preconnect" href="https://cdn.jsdelivr.net"><link rel="dns-prefetch" href="https://cdn.jsdelivr.net"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.11.2/css/all.min.css"><link rel="stylesheet" href="/assets/css/style.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/magnific-popup@1.1.0/dist/magnific-popup.min.css"> <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script> <script defer src="https://cdn.jsdelivr.net/combine/npm/popper.js@1.15.0,npm/bootstrap@4/dist/js/bootstrap.min.js"></script> <script async src="https://cdn.jsdelivr.net/combine/npm/lozad/dist/lozad.min.js,npm/magnific-popup@1/dist/jquery.magnific-popup.min.js"></script> <script defer src="/assets/js/dist/post.min.js"></script> <script defer src="/app.js"></script> <script defer src="https://www.googletagmanager.com/gtag/js?id="></script> <script> document.addEventListener("DOMContentLoaded", function(event) { window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', ''); }); </script><body data-spy="scroll" data-target="#toc"><div id="sidebar" class="d-flex flex-column align-items-end"><div class="profile-wrapper text-center"><div id="avatar"> <a href="/" alt="avatar" class="mx-auto"> <img src="https://pbs.twimg.com/profile_images/1134584327080153089/TSmiyQRF_400x400.jpg" alt="avatar" onerror="this.style.display='none'"> </a></div><div class="site-title mt-3"> <a href="/">Ben Jaeger's Blog</a></div><div class="site-subtitle font-italic">An Unashamed Nerd's Little Corner of the Internet</div></div><ul class="w-100"><li class="nav-item"> <a href="/" class="nav-link"> <i class="fa-fw fas fa-home ml-xl-3 mr-xl-3 unloaded"></i> <span>HOME</span> </a><li class="nav-item"> <a href="/categories/" class="nav-link"> <i class="fa-fw fas fa-stream ml-xl-3 mr-xl-3 unloaded"></i> <span>CATEGORIES</span> </a><li class="nav-item"> <a href="/tags/" class="nav-link"> <i class="fa-fw fas fa-tags ml-xl-3 mr-xl-3 unloaded"></i> <span>TAGS</span> </a><li class="nav-item"> <a href="/archives/" class="nav-link"> <i class="fa-fw fas fa-archive ml-xl-3 mr-xl-3 unloaded"></i> <span>ARCHIVES</span> </a><li class="nav-item"> <a href="/about/" class="nav-link"> <i class="fa-fw fas fa-info ml-xl-3 mr-xl-3 unloaded"></i> <span>ABOUT</span> </a></ul><div class="sidebar-bottom mt-auto d-flex flex-wrap justify-content-center"> <a href="https://github.com/ImperialSquid" aria-label="github" class="order-3" target="_blank" rel="noopener"> <i class="fab fa-github-alt"></i> </a> <a href="https://twitter.com/ItsBenJaeger" aria-label="twitter" class="order-4" target="_blank" rel="noopener"> <i class="fab fa-twitter"></i> </a> <a href=" javascript:location.href = 'mailto:' + ['benjaeger99','gmail.com'].join('@')" aria-label="email" class="order-5" > <i class="fas fa-envelope"></i> </a> <a href="/feed.xml" aria-label="rss" class="order-6" > <i class="fas fa-rss"></i> </a> <span class="icon-border order-2"></span> <span id="mode-toggle-wrapper" class="order-1"> <i class="mode-toggle fas fa-adjust"></i> <script type="text/javascript"> class ModeToggle { static get MODE_KEY() { return "mode"; } static get DARK_MODE() { return "dark"; } static get LIGHT_MODE() { return "light"; } constructor() { if (this.hasMode) { if (this.isDarkMode) { if (!this.isSysDarkPrefer) { this.setDark(); } } else { if (this.isSysDarkPrefer) { this.setLight(); } } } var self = this; /* always follow the system prefers */ this.sysDarkPrefers.addListener(function() { if (self.hasMode) { if (self.isDarkMode) { if (!self.isSysDarkPrefer) { self.setDark(); } } else { if (self.isSysDarkPrefer) { self.setLight(); } } self.clearMode(); } self.updateMermaid(); }); } /* constructor() */ setDark() { $('html').attr(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.DARK_MODE); } setLight() { $('html').attr(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE); sessionStorage.setItem(ModeToggle.MODE_KEY, ModeToggle.LIGHT_MODE); } clearMode() { $('html').removeAttr(ModeToggle.MODE_KEY); sessionStorage.removeItem(ModeToggle.MODE_KEY); } get sysDarkPrefers() { return window.matchMedia("(prefers-color-scheme: dark)"); } get isSysDarkPrefer() { return this.sysDarkPrefers.matches; } get isDarkMode() { return this.mode == ModeToggle.DARK_MODE; } get isLightMode() { return this.mode == ModeToggle.LIGHT_MODE; } get hasMode() { return this.mode != null; } get mode() { return sessionStorage.getItem(ModeToggle.MODE_KEY); } /* get the current mode on screen */ get modeStatus() { if (this.isDarkMode || (!this.hasMode && this.isSysDarkPrefer) ) { return ModeToggle.DARK_MODE; } else { return ModeToggle.LIGHT_MODE; } } updateMermaid() { if (typeof mermaid !== "undefined") { let expectedTheme = (this.modeStatus === ModeToggle.DARK_MODE? "dark" : "default"); let config = { theme: expectedTheme }; /* re-render the SVG › <https://github.com/mermaid-js/mermaid/issues/311#issuecomment-332557344> */ $(".mermaid").each(function() { let svgCode = $(this).prev().children().html(); $(this).removeAttr("data-processed"); $(this).html(svgCode); }); mermaid.initialize(config); mermaid.init(undefined, ".mermaid"); } } flipMode() { if (this.hasMode) { if (this.isSysDarkPrefer) { if (this.isLightMode) { this.clearMode(); } else { this.setLight(); } } else { if (this.isDarkMode) { this.clearMode(); } else { this.setDark(); } } } else { if (this.isSysDarkPrefer) { this.setLight(); } else { this.setDark(); } } this.updateMermaid(); } /* flipMode() */ } /* ModeToggle */ let toggle = new ModeToggle(); $(".mode-toggle").click(function() { toggle.flipMode(); }); </script> </span></div></div><div id="topbar-wrapper" class="row justify-content-center topbar-down"><div id="topbar" class="col-11 d-flex h-100 align-items-center justify-content-between"> <span id="breadcrumb"> <span> <a href="/"> Posts </a> </span> <span>Who's That Multimon?! Part 1 - Sprites and Dataloaders</span> </span> <i id="sidebar-trigger" class="fas fa-bars fa-fw"></i><div id="topbar-title"> Post</div><i id="search-trigger" class="fas fa-search fa-fw"></i> <span id="search-wrapper" class="align-items-center"> <i class="fas fa-search fa-fw"></i> <input class="form-control" id="search-input" type="search" aria-label="search" autocomplete="off" placeholder="Search..."> <i class="fa fa-times-circle fa-fw" id="search-cleaner"></i> </span> <span id="search-cancel" >Cancel</span></div></div><div id="main-wrapper"><div id="main"><div class="row"><div id="post-wrapper" class="col-12 col-lg-11 col-xl-8"><div class="post pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4"><h1 data-toc-skip>Who's That Multimon?! Part 1 - Sprites and Dataloaders</h1><div class="post-meta text-muted d-flex flex-column"><div> <span class="semi-bold"> Ben Jaeger </span> <span class="timeago " data-toggle="tooltip" data-placement="bottom" title="Wed, Jul 28, 2021, 12:00 AM +0100" prep="on" > Jul 28 <i class="unloaded">2021-07-28T00:00:00+01:00</i> </span></div><div> <span> <span class="timeago lastmod" data-toggle="tooltip" data-placement="bottom" title="Thu, Aug 12, 2021, 5:11 PM +0100" prefix="Updated " > Aug 12 <i class="unloaded">2021-08-12T17:11:12+01:00</i> </span> </span> <span class="readtime" data-toggle="tooltip" data-placement="bottom" title="1662 words">9 min</span></div></div><div class="post-content"> <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="/assets/headers/multimonheader.png" class="preview-img" alt="Multimon header image, says Who's That Multimon?! in pokémon style font with a Charizard sprite"><h1 id="introduction">Introduction</h1><p>A friend recently suggested it would be a fun challenge to see if you could build a neural network to identify Pokémon types using just their sprites. Given I was in the process of trying to get my head around neural networks and learning PyTorch at the time, this seemed like a fun little exercise to ease me into it! These posts will tell the story of how I got on. They’ll ideally bridge the gap between being comprehendible and having just enough of the gory details for those more interested in that side. If you want the technical stuff, you can find the GitHub repo of my results <a href="https://github.com/ImperialSquid/Multimon">here</a>. Without further ado, let’s begin!</p><h1 id="why-is-the-project-called-multimon">Why is the Project called “Multimon”?</h1><p>So, first of all, why that name for the project? Since, at the time of writing, I am doing a PhD on Multitasking Neural Networks (i.e. a neural net where we have more than one output), I decided to expand on the original pitch by my friend to include a few more things. As opposed to just the type I wanted to get: <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-src="/assets/multimon/448.png" alt="Lucario" class="right" width="240" height="300" /></p><ul><li>It’s Type (such as Flying, Grass, etc)<li>The Generation it’s from (pokémon games are released in generations, the intuition here being that the design principles may have changed over time)<li>Whether or not it’s a “Shiny” (shiny pokémon is the term given to a rarer form of each pokémon, they are identical in all regards except that they have a different colout palette)</ul><p>So for example, with the Lucario sprite shown to the right, we want to guess Fighting and Steel for the types, Gen IV for the generation and False for the shininess!</p><h1 id="the-data">The Data</h1><p>The most important thing now, therefore, is to get some data to work on! I landed on using the Pokébase library for python (<a href="https://github.com/PokeAPI/pokebase">GitHub here</a>), which acts as a lightweight interface for the PokéAPI database.</p><p>So for each sprite, I also need to store the correct types, generation and shininess. Given that for each pokémon, I want multiple sprites (for shiny/not shiny and also for front/back sprites), it’s going to be easier, in the long run, to collect the target data for each pokémon in advance. Then access it as we download the sprites, rather than collecting the data each time.</p><h2 id="the-types">The Types</h2><p>While it may seem easier to collect the types for each pokémon one by one, this ends up being <strong>far</strong> slower than collecting all the pokémon of each type and <em>then</em> flipping it the other way since there are less than two dozen types and several hundred pokémon!</p><p>To acheive this, I keep getting the pokemon for each type until I get an error, then using the pokemon in the list for that type, I make a dictionary mapping pokemon to their types. The pseudocode for this is below:</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre><td class="rouge-code"><pre>type_id = 0
+type_index = dict() 
+# will eventualy form a dictionary that looks like: 
+# {poke1: [type11, type12], poke2: [type21, type22], ...}
+WHILE TRUE:
+    TRY:
+        type = GET type name using pokebase
+        pokemons = GET all pokemon with that type
+    EXCEPT type doesn't exist:
+        BREAK
+    type_id += 1
+    
+    FOR pokemon IN pokemons:
+        old_types = type_index[pokemon] or [] if it dowsn't exist
+        new_types = old_types + [type]
+        # new_types is now a list of the types that pokemon has so far
+        type_index[pokemon] = new_types
+    ENDFOR
+ENDWHILE
+</pre></table></code></div></div><p>For reasons I’ll explain when I talk about the model in the next part (link to be added) I also added a bit of code to add a second “none” type if the pokémon only has one type.</p><h2 id="the-generation">The Generation</h2><p>Getting the generation for each pokémon works much the same as the above portion of code for types. I also keep the same pokemon to generation mapping format as above to make adding everything together later more straightforward.</p><h2 id="the-shininess">The Shininess</h2><p>We don’t actually need to collect this in advance! Since <em>every</em> pokémon has a shiny and non-shiny version, we can construct this target bit of data on the fly as we download the sprites!</p><h2 id="the-sprites">The Sprites</h2><p>Now for the last thing: downloading the sprites! I intend just to download the sprites raw initially, and then I don’t need to re-download them if I do some extra preprocessing later. I use the same idea as the types and generations previously to keep downloading sprites until I run out. I also need to download different sprite versions (shiny/not shiny and front/back). To do this, I download every pokémon of one version, then all of the next and so on. The pseudocode for this is as follows:</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+</pre><td class="rouge-code"><pre>FOR kwargs = {every combo of True/False for "shiny" and "back"}
+    suffix = each "True" kwarg with an underscore between
+    # eg {"shiny": True, "back": True} -&gt; "shiny_back"
+    # but {"shiny": False, "back": True} -&gt; "back"
+    
+    index = 1
+    WHILE TRUE:
+        TRY:
+            img_data = GET sprite with ID index
+        EXCEPT sprite doesn't exist:
+            BREAK
+        index += 1
+        
+        filename = index + suffix + ".jpg"
+        filepath = "./sprites/raw/" + filename
+        IF filename doesn't exist:
+            WRITE img_data TO filepath
+</pre></table></code></div></div><p>I also did a bit of preprocessing to standardise the images. Since the size of the images varied between 96x96 and 128x128 pixels, I rescaled everything down to 96x96. I also removed any transparency and gave the sprites a black background.</p><h2 id="connecting-it-all-together">Connecting It All Together</h2><p>With the sprites downloaded and preprocessed, and all the target data for each pokémon downloaded, I now needed a way to tie them together. I did this by taking a list of all the sprites, extracting the ID from the name, and getting the relevant types, generations, and shininess. This is done as follows:</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+</pre><td class="rouge-code"><pre>WITH open("data.txt") AS file:
+    FOR image_name IN image_folder:
+        id = extract id from image_name
+        # shiny pokémon have the "shiny" in their name as per The Sprites
+        shininess = extract shininess from image_name
+        types = type_index[id][0] + "," + type_index[id][1]
+        gen = gen_index[id]
+        
+        text = image_name + "," + types + "," + gen + "," + shininess
+        WRITE text TO file
+</pre></table></code></div></div><h1 id="the-dataset">The Dataset</h1><p>The last thing in this post will be making a proper Dataset object from PyTorch. PyTorch uses Dataset objects to handle loading the data as training happens, they can be about as simple or complex as you need. Still, the minimum you need is a method to dispense the data and another to return how many data items there will be (so PyTorch knows not to request too many instances).</p><p>The first thing to do is make a way to get the data back out of the <code class="language-plaintext highlighter-rouge">data.txt</code> file we made previously. This isn’t hard to do, but more work will need to be done on the target data after this is sorted. Having a pokémon’s type be “fire” or “water” doesn’t mean much to a neural net since that only works with numbers. I, therefore, turned these categories into “one-hot vectors” (or two-hot in the type scenario).</p><p>A one-hot vector encodes each category to an index in a target vector. The corresponding element is then “hot” and marked with a 1, while the rest are zeroes. The model then tries to get the correct element as close to 1 and as close to 0 for the others.</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre><td class="rouge-code"><pre>An Example One-Hot Encoding
+Dog -&gt; [1,0,0]
+Cat -&gt; [0,1,0]
+Fish -&gt; [0,0,1]
+</pre></table></code></div></div><p>To parse the data file, I then convert the text file like so (to those that know the difference, the data is also converted to tensors as it gets parsed, if not, don’t worry about it, we’ll get more into PyTorch specifics later!):</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre><td class="rouge-code"><pre>data_dict = dict()
+FOR line IN text_file:
+    splits = split lines along ","s
+    index = splits[0]
+    
+    types = EncodeOneHot(splits[1]) + EncodeOneHot(splits[2])
+    # "fire,electric" -&gt; [1,0,0,...] + [0,0,1,...] = [1,0,1,...]  
+    
+    gen = EncodeOneHot(splits[3])
+    # "gen-3" -&gt; [0,0,1,...]
+    
+    shiny = (splits[4] == "true")
+    # "false" -&gt; 0
+    
+    data_dict[index] = [types, gen, shiny]
+</pre></table></code></div></div><p>In machine learning, it’s best to keep separate data sets for training and testing the model. Since the data is mixed together, I also needed to filter it as it gets loaded to keep separate sets. This is achieved with some python <a href="https://www.datacamp.com/community/tutorials/python-dictionary-comprehension">dictionary comprehension</a>.</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre><td class="rouge-code"><pre>full_data = get full data dictionary from data.txt
+filtered_data = {key: full_data[key] for index, key in enumerate(full_data) 
+                 if index in index_mask or no_mask}
+</pre></table></code></div></div><p>This line may look a bit complicated… Essentially, all it does is take in a list of indexes to keep (e.g. [1,2,4,5,7,8,…]) and throws out any data element not in the index mask. Alternatively, if no_mask is True, all elements are added regardless of the index mask.</p><p>I plan to do several other fancy things with this Dataset later, but that is all that’s needed for now!</p><p>Here’s a chunk of pseudocode for the Dataset (with lots of little things skimmed over that I’ll come back to later)</p><div class="language-plaintext highlighter-rouge"><div class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+</pre><td class="rouge-code"><pre>class MultimonDataset(Dataset):
+    self __init__(self, data_file, img_path, index_mask, no_mask = False)
+        full_data = self.parse_data_file(data_file)
+        self.data = {key: full_data[key] for index, key in enumerate(full_data) 
+		             if index in index_mask or no_mask}
+        # filter data as before
+        
+        self.img_path = img_path
+    
+    self __len__(self)
+        return len(self.data)
+    
+    self __getitem__(self, index):
+        key = self.data.keys()[index]
+        img = READ (self.img_path + key)
+        labels = self.data[key]
+
+    self parse_data_file(self, filename):
+        # Parse data as described above
+</pre></table></code></div></div><h1 id="summary">Summary</h1><p>Congrats! With that, we’ve come to the end of Part 1 of the project! I set out the rough outline of the project and got a lot of the data management sorted! Next up, I’ll very quickly skim over some machine learning basics and start making the model!</p></div><div class="post-tail-wrapper text-muted"><div class="post-meta mb-3"> <i class="far fa-folder-open fa-fw mr-1"></i> <a href='/categories/projects/'>Projects</a>, <a href='/categories/multimon/'>Multimon</a></div><div class="post-tags"> <i class="fa fa-tags fa-fw mr-1"></i> <a href="/tags/neural-networks/" class="post-tag no-text-decoration" >neural networks</a> <a href="/tags/multitask-learning/" class="post-tag no-text-decoration" >multitask learning</a> <a href="/tags/computer-vision/" class="post-tag no-text-decoration" >computer vision</a> <a href="/tags/pytorch/" class="post-tag no-text-decoration" >pytorch</a> <a href="/tags/pok%C3%A9mon/" class="post-tag no-text-decoration" >pokémon</a></div><div class="post-tail-bottom d-flex justify-content-between align-items-center mt-3 pt-5 pb-2"><div class="license-wrapper"> This post is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> by the author.</div><div class="share-wrapper"> <span class="share-label text-muted mr-1">Share</span> <span class="share-icons"> <a href="https://twitter.com/intent/tweet?text=Who's That Multimon?! Part 1 - Sprites and Dataloaders - Ben Jaeger's Blog&url=https://imperialsquid.github.io//posts/Multimon-Part-1/" data-toggle="tooltip" data-placement="top" title="Twitter" target="_blank" rel="noopener" aria-label="Twitter"> <i class="fa-fw fab fa-twitter"></i> </a> <a href="https://www.facebook.com/sharer/sharer.php?title=Who's That Multimon?! Part 1 - Sprites and Dataloaders - Ben Jaeger's Blog&u=https://imperialsquid.github.io//posts/Multimon-Part-1/" data-toggle="tooltip" data-placement="top" title="Facebook" target="_blank" rel="noopener" aria-label="Facebook"> <i class="fa-fw fab fa-facebook-square"></i> </a> <a href="https://telegram.me/share?text=Who's That Multimon?! Part 1 - Sprites and Dataloaders - Ben Jaeger's Blog&url=https://imperialsquid.github.io//posts/Multimon-Part-1/" data-toggle="tooltip" data-placement="top" title="Telegram" target="_blank" rel="noopener" aria-label="Telegram"> <i class="fa-fw fab fa-telegram"></i> </a> <i class="fa-fw fas fa-link small" onclick="copyLink()" data-toggle="tooltip" data-placement="top" title="Copy link"></i> </span></div></div></div></div></div><div id="panel-wrapper" class="col-xl-3 pl-2 text-muted topbar-down"><div class="access"><div id="access-lastmod" class="post"> <span>Recent Update</span><ul class="post-content pl-0 pb-1 ml-1 mt-2"><li><a href="/posts/Multimon-Part-1/">Who's That Multimon?! Part 1 - Sprites and Dataloaders</a></ul></div><div id="access-tags"> <span>Trending Tags</span><div class="d-flex flex-wrap mt-3 mb-1 mr-3"> <a class="post-tag" href="/tags/computer-vision/">computer vision</a> <a class="post-tag" href="/tags/multitask-learning/">multitask learning</a> <a class="post-tag" href="/tags/neural-networks/">neural networks</a> <a class="post-tag" href="/tags/pok%C3%A9mon/">pokémon</a> <a class="post-tag" href="/tags/pytorch/">pytorch</a></div></div></div><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@1.0.1/dist/bootstrap-toc.min.js"></script><div id="toc-wrapper" class="pl-0 pr-4 mb-5"> <span class="pl-3 pt-2 mb-2">Contents</span><nav id="toc" data-toggle="toc"></nav></div></div></div><div class="row"><div class="col-12 col-lg-11 col-xl-8"><div id="post-extend-wrapper" class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-md-4 pr-md-4"><div class="post-navigation d-flex justify-content-between"> <span class="btn btn-outline-primary disabled" prompt="Older"><p>-</p></span> <span class="btn btn-outline-primary disabled" prompt="Newer"><p>-</p></span></div></div></div></div><footer class="d-flex w-100 justify-content-center"><div class="d-flex justify-content-between align-items-center"><div class="footer-left"><p class="mb-0"> © 2021 <a href="https://twitter.com/ItsBenJaeger">Ben Jaeger</a>. <span data-toggle="tooltip" data-placement="top" title="Except where otherwise noted, the blog posts on this site are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License by the author.">Some rights reserved.</span></p></div><div class="footer-right"><p class="mb-0"> Powered by <a href="https://jekyllrb.com" target="_blank" rel="noopener">Jekyll</a> with <a href="https://github.com/cotes2020/jekyll-theme-chirpy" target="_blank" rel="noopener">Chirpy</a> theme.</p></div></div></footer></div><div id="search-result-wrapper" class="d-flex justify-content-center unloaded"><div class="col-12 col-sm-11 post-content"><div id="search-hints"><h4 class="text-muted mb-4">Trending Tags</h4><a class="post-tag" href="/tags/computer-vision/">computer vision</a> <a class="post-tag" href="/tags/multitask-learning/">multitask learning</a> <a class="post-tag" href="/tags/neural-networks/">neural networks</a> <a class="post-tag" href="/tags/pok%C3%A9mon/">pokémon</a> <a class="post-tag" href="/tags/pytorch/">pytorch</a></div><div id="search-results" class="d-flex flex-wrap justify-content-center text-muted mt-3"></div></div></div></div><div id="mask"></div><a id="back-to-top" href="#" aria-label="back-to-top" class="btn btn-lg btn-box-shadow" role="button"> <i class="fas fa-angle-up"></i> </a> <script src="https://cdn.jsdelivr.net/npm/simple-jekyll-search@1.7.3/dest/simple-jekyll-search.min.js"></script> <script> SimpleJekyllSearch({ searchInput: document.getElementById('search-input'), resultsContainer: document.getElementById('search-results'), json: '/assets/js/data/search.json', searchResultTemplate: '<div class="pl-1 pr-1 pl-sm-2 pr-sm-2 pl-lg-4 pr-lg-4 pl-xl-0 pr-xl-0"> <a href="https://imperialsquid.github.io/{url}">{title}</a><div class="post-meta d-flex flex-column flex-sm-row text-muted mt-1 mb-1"> {categories} {tags}</div><p>{snippet}</p></div>', noResultsText: '<p class="mt-5">Oops! No result founds.</p>', templateMiddleware: function(prop, value, template) { if (prop === 'categories') { if (value === '') { return `${value}`; } else { return `<div class="mr-sm-4"><i class="far fa-folder fa-fw"></i>${value}</div>`; } } if (prop === 'tags') { if (value === '') { return `${value}`; } else { return `<div><i class="fa fa-tag fa-fw"></i>${value}</div>`; } } } }); </script>
